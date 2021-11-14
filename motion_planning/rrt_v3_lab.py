@@ -22,6 +22,7 @@ from udacidrone import Drone
 from udacidrone.connection import MavlinkConnection
 from udacidrone.messaging import MsgID
 from udacidrone.frame_utils import global_to_local
+#from udacidrone.drone import set_home_position
 
 
 import matplotlib
@@ -34,7 +35,6 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from networkx import Graph
 import graphviz
-
 
 from IPython import get_ipython
 import time
@@ -134,11 +134,15 @@ class RRT:
         east_min = np.floor(np.min(data[:, 1] - data[:, 4]))
         east_max = np.ceil(np.max(data[:, 1] + data[:, 4]))
 
+
+
         # given the minimum and maximum coordinates we can
         # calculate the size of the grid.
         north_size = int(np.ceil(north_max - north_min))
         east_size = int(np.ceil(east_max - east_min))
 
+        print("north min, max, and size", north_max, north_min, north_size)
+        print("east min, max, and size", east_max, east_min, east_size)
         # Initialize an empty grid
         grid = np.zeros((north_size, east_size))
 
@@ -240,7 +244,8 @@ class RRT:
         print ('Planning RRT path. It may take a few seconds...')
         rrt = RRT(x_init)
         rrt_path = RRT(x_init)
-        
+        plt.imshow(grid, cmap='Greys', origin='lower')
+        sys.exit
 
         for _ in range(num_vertices):
 
@@ -487,11 +492,13 @@ class MotionPlanning(Drone):
         print(f'Home lat : {lat0}, lon : {lon0}')
         # # # TODO: set home position to (lat0, lon0, 0)
         self.set_home_position(lon0, lat0, 0)
-
+        self.set_home_as_current_position()
         # TODO: retrieve current global position
         local_north, local_east, local_down = global_to_local(self.global_position, self.global_home)
         print(f'Local => north : {local_north}, east : {local_east}, down : {local_down}')
- 
+        self._update_global_home
+
+        
         # TODO: convert to current local position using global_to_local()
         
         #  :::: ~
