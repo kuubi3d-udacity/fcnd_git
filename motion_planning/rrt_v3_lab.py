@@ -158,8 +158,8 @@ class RRT:
                 ]
                 grid[obstacle[0]:obstacle[1]+1, obstacle[2]:obstacle[3]+1] = 1
         
-        # ~print('INFO', grid, drone_altitude, safety_distance)
-        # ~print(grid, int(north_min), int(east_min))        
+        print('INFO', grid, drone_altitude, safety_distance)
+        print(grid, int(north_min), int(east_min))        
     
 
         #print(grid, drone_altitude, safety_distance)
@@ -186,7 +186,8 @@ class RRT:
         closest_dist = 100000
         closest_vertex = None
         x_rand = np.array(x_rand)
-       
+
+        print ("x_rand", x_rand)       
         
 
         for v in rrt.vertices:
@@ -246,11 +247,12 @@ class RRT:
         rrt_path = RRT(x_init)
         plt.imshow(grid, cmap='Greys', origin='lower')
         sys.exit
+        print("grid shape", grid.shape, grid)
+
 
         for _ in range(num_vertices):
 
-           
-            
+
             x_rand = RRT.sample_state(self, grid)
             # sample states until a free state is found
             while grid[int(x_rand[0]), int(x_rand[1])] == 1:
