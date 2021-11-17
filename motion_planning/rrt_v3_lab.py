@@ -158,7 +158,7 @@ class RRT:
                 ]
                 grid[obstacle[0]:obstacle[1]+1, obstacle[2]:obstacle[3]+1] = 1
         
-        print('INFO', grid, drone_altitude, safety_distance)
+        print('INFO', obstacle, drone_altitude, safety_distance)
         print(grid, int(north_min), int(east_min))        
     
 
@@ -330,8 +330,8 @@ class RRT:
                         shft = [-2/grid.shape[0], -2/grid.shape[1]]
                         print ("Shift", shft)
                         print("Path Mapped")
-                        RRT.wp_nodes = list(map(lambda n: n - shft, rrt_path.path_tree.nodes))
-                        # RRT.wp_nodes = list(rrt_path.path_tree.nodes)
+                        #RRT.wp_nodes = list(map(lambda n: n - shft, rrt_path.path_tree.nodes))
+                        RRT.wp_nodes = list(rrt_path.path_tree.nodes)
                         print("path nodes", RRT.wp_nodes)
 
                         plt.imshow(grid, cmap='Greys', origin='lower')
