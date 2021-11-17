@@ -327,9 +327,11 @@ class RRT:
                     print("new parent", current_node)
                     
                     if parent_node == x_init:
-
+                        shft = [-2/grid.shape[0], -2/grid.shape[1]]
+                        print ("Shift", shft)
                         print("Path Mapped")
-                        RRT.wp_nodes = list(rrt_path.path_tree.nodes)
+                        RRT.wp_nodes = list(map(lambda shft -rrt_path.path_tree.nodes)
+                        # RRT.wp_nodes = list(rrt_path.path_tree.nodes)
                         print("path nodes", RRT.wp_nodes)
 
                         plt.imshow(grid, cmap='Greys', origin='lower')
