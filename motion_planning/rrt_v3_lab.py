@@ -330,7 +330,7 @@ class RRT:
                         shft = [-2/grid.shape[0], -2/grid.shape[1]]
                         print ("Shift", shft)
                         print("Path Mapped")
-                        RRT.wp_nodes = list(map(lambda shft: shft-rrt_path.path_tree.nodes))
+                        RRT.wp_nodes = list(map(lambda n: n - shft, rrt_path.path_tree.nodes))
                         # RRT.wp_nodes = list(rrt_path.path_tree.nodes)
                         print("path nodes", RRT.wp_nodes)
 
