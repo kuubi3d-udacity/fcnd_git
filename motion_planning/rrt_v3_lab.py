@@ -245,7 +245,7 @@ class RRT:
         print ('Planning RRT path. It may take a few seconds...')
         rrt = RRT(x_init)
         rrt_path = RRT(x_init)
-        plt.imshow(grid, cmap='Greys', origin='lower')
+        #plt.imshow(grid, cmap='Greys', origin='lower')
         sys.exit
         print("grid shape", grid.shape, grid)
 
@@ -327,7 +327,7 @@ class RRT:
                     print("new parent", current_node)
                     
                     if parent_node == x_init:
-                        shft_x, shft_y = [int(grid.shape[0]/4), int(grid.shape[1]/4)]
+                        shft_x, shft_y = [0,0] #[int(grid.shape[0]/8), int(grid.shape[1]/8)]
                         print ("Shift", shft_x, shft_y)
                         print("Path Mapped")
                         #RRT.wp_nodes = list(map(lambda n: n - shft_x, rrt_path.path_tree.nodes))
@@ -560,8 +560,8 @@ class MotionPlanning(Drone):
         # TODO: send waypoints to sim (this is just for visualization of waypoints)
         self.send_waypoints()
 
-        waypoints = [[r[0], r[1], TARGET_ALTITUDE, 0] for r in RRT.wp_nodes]
-        #waypoints = [[r[0] + north_offset, r[1] + east_offset, TARGET_ALTITUDE, 0] for r in RRT.wp_nodes]
+        #waypoints = [[r[0], r[1], TARGET_ALTITUDE, 0] for r in RRT.wp_nodes]
+        waypoints = [[r[0] + north_offset, r[1] + east_offset, TARGET_ALTITUDE, 0] for r in RRT.wp_nodes]
         #Set self.waypoints
         waypoints = list(reversed(waypoints))
         self.waypoints = waypoints
