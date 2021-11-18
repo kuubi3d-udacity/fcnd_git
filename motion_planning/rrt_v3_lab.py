@@ -327,7 +327,7 @@ class RRT:
                     print("new parent", current_node)
                     
                     if parent_node == x_init:
-                        shft_x, shft_y = [int(grid.shape[0]/2), int(grid.shape[1]/2)]
+                        shft_x, shft_y = [int(grid.shape[0]/4), int(grid.shape[1]/4)]
                         print ("Shift", shft_x, shft_y)
                         print("Path Mapped")
                         #RRT.wp_nodes = list(map(lambda n: n - shft_x, rrt_path.path_tree.nodes))
