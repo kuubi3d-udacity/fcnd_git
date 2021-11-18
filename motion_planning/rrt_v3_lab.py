@@ -339,8 +339,8 @@ class RRT:
                         plt.plot(RRT.x_init[1], RRT.x_init[0], 'ro')
                         plt.plot(RRT.x_goal[1], RRT.x_goal[0], 'ro')
 
-                        for (v1, v2) in RRT.wp_nodes:
-                        #for (v1, v2) in rrt_path.path_tree.edges:
+                        #for (v1, v2) in RRT.wp_nodes:
+                        for (v1, v2) in rrt_path.path_tree.edges:
                             plt.plot([v1[1], v2[1]], [v1[0], v2[0]], 'y-')
                         
                         plt.show(block=True)
