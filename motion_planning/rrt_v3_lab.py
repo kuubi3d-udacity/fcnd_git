@@ -330,15 +330,17 @@ class RRT:
                         shft_x, shft_y = [int(grid.shape[0]/2), int(grid.shape[1]/2)]
                         print ("Shift", shft_x, shft_y)
                         print("Path Mapped")
-                        RRT.wp_nodes = list(map(lambda n: n - shft_x, rrt_path.path_tree.nodes))
+                        #RRT.wp_nodes = list(map(lambda n: n - shft_x, rrt_path.path_tree.nodes))
+                        RRT.wp_nodes = list((a-shft_x, b-shft_y) for a, b in rrt_path.path_tree.nodes)
                         #RRT.wp_nodes = list(rrt_path.path_tree.nodes)
                         print("path nodes", RRT.wp_nodes)
 
                         plt.imshow(grid, cmap='Greys', origin='lower')
                         plt.plot(RRT.x_init[1], RRT.x_init[0], 'ro')
                         plt.plot(RRT.x_goal[1], RRT.x_goal[0], 'ro')
-                    
-                        for (v1, v2) in rrt_path.path_tree.edges:
+
+                        for (v1, v2) in RRT.wp_nodes:
+                        #for (v1, v2) in rrt_path.path_tree.edges:
                             plt.plot([v1[1], v2[1]], [v1[0], v2[0]], 'y-')
                         
                         plt.show(block=True)
