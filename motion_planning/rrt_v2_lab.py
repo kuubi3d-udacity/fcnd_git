@@ -339,14 +339,15 @@ class RRT:
                         print (rrt_path.path_tree.edges, "\n")
                         print (rrt_path.path_tree.nodes, "\n")
                         
-                        smo = list(rrt_path.path_tree.edges)
-                        x1, y1 = list(zip(*rrt_path.path_tree.edges))
+                        smo = list(sorted(rrt_path.path_tree.nodes))
+                        x1, y1 = list(zip(*smo))
                         
-                        print ("smooth", smo,"\n")
+                        #print ("smooth", smo,"\n")
                         print ("x1", x1,"\n")
                         print ("y1", y1,"\n")
 
-                        RRT.wp_nodes, *rest = interpolate.splprep([a, b] for a, b in ([smo]))
+                        RRT.wp_nodes = interpolate.CubicSpline(x1, y1)
+                        #RRT.wp_nodes, *rest = interpolate.splprep([a, b] for a, b in (smo))
                         #RRT.wp_nodes, *rest = interpolate.splprep([a, b] for a, b in (rrt_path.path_tree.edges[0], rrt_path.path_tree.edges[1]))
                         #RRT.wp_nodes = list(rrt_path.path_tree.nodes)
                         print("path nodes", RRT.wp_nodes)
