@@ -1,49 +1,54 @@
-from os import truncate
-import queue
-import sys
 
-import argparse
+import sys
+from IPython import get_ipython
 import time
+import argparse
+
 import msgpack
 from enum import Enum, auto
 
 import numpy as np
-import decimal
-
+from sympy import interpolate
 
 # This file is subject to the terms and conditions defined in
 # file 'LICENSE', which is part of this source code package.
 
-from operator import itemgetter
-
-from sortedcontainers import SortedDict
 from planning_utils import a_star, heuristic, create_grid
 from udacidrone import Drone
 from udacidrone.connection import MavlinkConnection
 from udacidrone.messaging import MsgID
 from udacidrone.frame_utils import global_to_local
+#from udacidrone.drone import set_home_position
 
 
 import matplotlib
 #matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
-from sklearn.neighbors import KDTree
 
 import networkx as nx
+
+from scipy import interpolate
 
 import matplotlib.pyplot as plt
 from networkx import Graph
 import graphviz
 
 
-from IPython import get_ipython
-import time
 
+#from os import truncate
+#import queue
+#import decimal
+#from operator import itemgetter
+#from sortedcontainers import SortedDict
+
+#from sklearn.neighbors import KDTree
 #from enum import Enum
-from queue import PriorityQueue
+#from queue import PriorityQueue
 
-import math
-from collections import Counter
+#import math
+#from collections import Counter
+
+import re
 
 get_ipython().run_line_magic('matplotlib', 'inline')
 plt.switch_backend('Qt5agg')
@@ -132,11 +137,15 @@ class RRT:
         east_min = np.floor(np.min(data[:, 1] - data[:, 4]))
         east_max = np.ceil(np.max(data[:, 1] + data[:, 4]))
 
+
+
         # given the minimum and maximum coordinates we can
         # calculate the size of the grid.
         north_size = int(np.ceil(north_max - north_min))
         east_size = int(np.ceil(east_max - east_min))
 
+        print("north min, max, and size", north_max, north_min, north_size)
+        print("east min, max, and size", east_max, east_min, east_size)
         # Initialize an empty grid
         grid = np.zeros((north_size, east_size))
 
@@ -152,8 +161,8 @@ class RRT:
                 ]
                 grid[obstacle[0]:obstacle[1]+1, obstacle[2]:obstacle[3]+1] = 1
         
-        # ~print('INFO', grid, drone_altitude, safety_distance)
-        # ~print(grid, int(north_min), int(east_min))        
+        print('INFO', obstacle, drone_altitude, safety_distance)
+        print(grid, int(north_min), int(east_min))        
     
 
         #print(grid, drone_altitude, safety_distance)
@@ -180,7 +189,8 @@ class RRT:
         closest_dist = 100000
         closest_vertex = None
         x_rand = np.array(x_rand)
-       
+
+        print ("x_rand", x_rand)       
         
 
         for v in rrt.vertices:
@@ -225,25 +235,27 @@ class RRT:
 
     
 
-    def generate_RRT(self, grid, x_init, num_vertices, dt):
+    def generate_RRT(self, grid, x_init, x_goal, num_vertices, dt):
        
         
-        x_goal = (30, 750)
+        #x_goal = (30, 750)
         
         num_vertices = 1600
         dt = 18
-        x_init = (20, 150)
+        #x_init = (20, 150)
         path = [(20, 30), (40, 50)]
 
         print ('Planning RRT path. It may take a few seconds...')
         rrt = RRT(x_init)
         rrt_path = RRT(x_init)
-        
+        #plt.imshow(grid, cmap='Greys', origin='lower')
+        sys.exit
+        print("grid shape", grid.shape, grid)
+
 
         for _ in range(num_vertices):
 
-           
-            
+
             x_rand = RRT.sample_state(self, grid)
             # sample states until a free state is found
             while grid[int(x_rand[0]), int(x_rand[1])] == 1:
@@ -267,7 +279,7 @@ class RRT:
             #print("edge cost", rrt_cost)
 
 
-            if np.linalg.norm(norm_g - norm_n) < 100:
+            if np.linalg.norm(norm_g - norm_n) < 200:
 
                 print ("Goal Found.")
                 rrt.add_edge(x_near, x_new, u)
@@ -301,36 +313,55 @@ class RRT:
 
                     parent = list(rrt.get_parent(current_node))
 
+                    #current_node = (int(current_node[0]), int(current_node[1]))
+                    #current_node = [current_node, ((10, 140))]
+                    #print("current_node", current_node)
+                    #current_node = tuple(map(lambda x: abs(x[0] - x[1], current_node)))
+                    
                     current_node = (int(current_node[0]), int(current_node[1]))
                     parent_node = tuple(round(int(p1)) for p1 in parent[0])
                     
                     print("current_node", current_node)
                     print("parent node", parent_node)
 
+                    rrt_path.add_rrt_edge(current_node, parent_node, u)
+                    
+                    current_node = tuple(parent[0])
+                    print("new parent", current_node)
+                    
                     if parent_node == x_init:
-
+                        shft_x, shft_y = [0,0] #[int(grid.shape[0]/8), int(grid.shape[1]/8)]
+                        print ("Shift", shft_x, shft_y)
                         print("Path Mapped")
-                        RRT.wp_nodes = list(rrt_path.path_tree.nodes)
+                        #RRT.wp_nodes = list(map(lambda n: n - shft_x, rrt_path.path_tree.nodes))
+                        #RRT.wp_nodes = list((a-shft_x, b-shft_y) for a, b in rrt_path.path_tree.nodes)
+                        
+                        print (rrt_path.path_tree.edges, "\n")
+                        print (rrt_path.path_tree.nodes, "\n")
+                        
+                        smo = list(rrt_path.path_tree.edges)
+                        x1, y1 = list(zip(*rrt_path.path_tree.edges))
+                        
+                        print ("smooth", smo,"\n")
+                        print ("x1", x1,"\n")
+                        print ("y1", y1,"\n")
+
+                        RRT.wp_nodes, *rest = interpolate.splprep([a, b] for a, b in ([smo]))
+                        #RRT.wp_nodes, *rest = interpolate.splprep([a, b] for a, b in (rrt_path.path_tree.edges[0], rrt_path.path_tree.edges[1]))
+                        #RRT.wp_nodes = list(rrt_path.path_tree.nodes)
                         print("path nodes", RRT.wp_nodes)
 
                         plt.imshow(grid, cmap='Greys', origin='lower')
                         plt.plot(RRT.x_init[1], RRT.x_init[0], 'ro')
                         plt.plot(RRT.x_goal[1], RRT.x_goal[0], 'ro')
-                    
+
+                        #for (v1, v2) in RRT.wp_nodes:
                         for (v1, v2) in rrt_path.path_tree.edges:
                             plt.plot([v1[1], v2[1]], [v1[0], v2[0]], 'y-')
                         
                         plt.show(block=True)
-
+        
                         return rrt
-
-                    else: 
-                        rrt_path.add_rrt_edge(current_node, parent_node, u)
-                        
-                        current_node = tuple(parent[0])
-                        print("new parent", current_node)
-
-                    
 
             elif grid[int(x_new[0]), int(x_new[1])] == 0:
                 # the orientation `u` will be added as metadata to
@@ -449,23 +480,51 @@ class MotionPlanning(Drone):
         print("Sending waypoints to simulator ...")
         data = msgpack.dumps(self.waypoints)
         self.connection._master.write(data)
+    
+    # ~ :::: from darienmt planning_util
+
+    def read_home(filename):
+        """
+        Reads home (lat, lon) from the first line of the `file`.
+        """
+        with open(filename) as f:
+            first_line = f.readline()
+        match = re.match(r'^lat0 (.*), lon0 (.*)$', first_line)
+        if match:
+            lat = match.group(1)
+            lon = match.group(2)
+        return np.fromstring(f'{lat},{lon}', dtype='float64', sep=',')
+
+    #  :::: ~
+
 
     def plan_path(self):
         self.flight_state = States.PLANNING
         print("Searching for a path ...")
-        TARGET_ALTITUDE = 100
+        TARGET_ALTITUDE = 20
         SAFETY_DISTANCE = 5
 
         self.target_position[2] = TARGET_ALTITUDE
 
-        # TODO: read lat0, lon0 from colliders into floating point values
-        
-        # TODO: set home position to (lon0, lat0, 0)
+        # ~ :::: from darienmt
 
+        colliders_file = 'colliders.csv'
+        # TODO: read lat0, lon0 from colliders into floating point values
+        lat0, lon0 = MotionPlanning.read_home(colliders_file)
+        print(f'Home lat : {lat0}, lon : {lon0}')
+        # # # TODO: set home position to (lat0, lon0, 0)
+        self.set_home_position(lon0, lat0, 0)
+        self.set_home_as_current_position()
         # TODO: retrieve current global position
- 
+        local_north, local_east, local_down = global_to_local(self.global_position, self.global_home)
+        print(f'Local => north : {local_north}, east : {local_east}, down : {local_down}')
+        self._update_global_home
+
+        
         # TODO: convert to current local position using global_to_local()
         
+        #  :::: ~
+       
         print('global home {0}, position {1}, local position {2}'.format(self.global_home, self.global_position,
                                                                          self.local_position))
         # Read in obstacle map
@@ -477,10 +536,12 @@ class MotionPlanning(Drone):
         print("North offset = {0}, east offset = {1}".format(north_offset, east_offset))
         # Define starting point on the grid (this is just grid center)
         grid_start = (-north_offset, -east_offset)
+        #grid_start = (20, 150)
         # TODO: convert start position to current position rather than map center
         
         # Set goal as some arbitrary position on the grid
         grid_goal = (-north_offset + 10, -east_offset + 10)
+        #grid_goal = (30, 750)
        
         # TODO: adapt to set goal as latitude / longitude position and convert
 
@@ -496,14 +557,11 @@ class MotionPlanning(Drone):
         # TODO: prune path to minimize number of waypoints
         # TODO (if you're feeling ambitious): Try a different approach altogether!
         
-        rrt = RRT.generate_RRT(self, grid, RRT.x_init, RRT.num_vertices, RRT.dt)
-      
-
-        
-        #path, _ = a_star(grid, heuristic, grid_start, grid_goal)
+        #rrt = RRT.generate_RRT(self, grid, grid_start, grid_goal, RRT.num_vertices, RRT.dt)
+        rrt = RRT.generate_RRT(self, grid, RRT.x_init, RRT.x_goal, RRT.num_vertices, RRT.dt)
         #print("a_star nodes", path, "\n")
                
-        print("rrt nodes", RRT.wp_nodes, "\n") #, rrt.edges
+        #print("rrt nodes", RRT.wp_nodes, "\n") #, rrt.edges
         
         #rrt_path, _= list(rrt.vertices)
          
@@ -518,8 +576,8 @@ class MotionPlanning(Drone):
         # TODO: send waypoints to sim (this is just for visualization of waypoints)
         #self.send_waypoints()
 
-        waypoints = [[r[0], r[1], TARGET_ALTITUDE, 0] for r in RRT.wp_nodes]
-        #waypoints = [[r[0], + north_offset, r[1] + east_offset, TARGET_ALTITUDE, 0] for r in RRT.wp_nodes]
+        #waypoints = [[r[0], r[1], TARGET_ALTITUDE, 0] for r in RRT.wp_nodes]
+        waypoints = [[r[0] + north_offset, r[1] + east_offset, TARGET_ALTITUDE, 0] for r in RRT.wp_nodes]
         #Set self.waypoints
         waypoints = list(reversed(waypoints))
         self.waypoints = waypoints
@@ -545,21 +603,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--port', type=int, default=5760, help='Port number')
     parser.add_argument('--host', type=str, default='127.0.0.1', help="host address, i.e. '127.0.0.1'")
-    
-    # ~ from dariemt
-    parser.add_argument('--goal_lon', type=str, help="Goal longitude")
-    parser.add_argument('--goal_lat', type=str, help="Goal latitude")
-    parser.add_argument('--goal_alt', type=str, help="Goal altitude")
     args = parser.parse_args()
 
     conn = MavlinkConnection('tcp:{0}:{1}'.format(args.host, args.port), timeout=240)
     drone = MotionPlanning(conn)
-    
-    # ~ from dariemt
-    #goal_global_position = np.fromstring(f'{args.goal_lon},{args.goal_lat},{args.goal_alt}', dtype='float64', sep=',')
-    #drone = MotionPlanning(conn, goal_global_position=goal_global_position)
-    
     time.sleep(1)
+
     drone.start()
 
     

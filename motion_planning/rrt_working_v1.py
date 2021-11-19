@@ -279,7 +279,7 @@ class RRT:
             if np.linalg.norm(norm_g - norm_n) < 200:
 
                 print ("Goal Found.")
-                rrt.add_edge(x_near, x_new, u)
+                #rrt.add_edge(x_near, x_new, u)
 
                 # Now let's plot the generated RRT.
 
@@ -485,7 +485,7 @@ class MotionPlanning(Drone):
     def plan_path(self):
         self.flight_state = States.PLANNING
         print("Searching for a path ...")
-        TARGET_ALTITUDE = 100
+        TARGET_ALTITUDE = 20
         SAFETY_DISTANCE = 5
 
         self.target_position[2] = TARGET_ALTITUDE
@@ -554,11 +554,11 @@ class MotionPlanning(Drone):
         # Convert path to waypoints
         
         
-        waypoints = [[p[0] + north_offset, p[1] + east_offset, TARGET_ALTITUDE, 0] for p in path]
+        #waypoints = [[p[0] + north_offset, p[1] + east_offset, TARGET_ALTITUDE, 0] for p in path]
         # Set self.waypoints
-        self.waypoints = waypoints
+        #self.waypoints = waypoints
         # TODO: send waypoints to sim (this is just for visualization of waypoints)
-        self.send_waypoints()
+        #self.send_waypoints()
 
         #waypoints = [[r[0], r[1], TARGET_ALTITUDE, 0] for r in RRT.wp_nodes]
         waypoints = [[r[0] + north_offset, r[1] + east_offset, TARGET_ALTITUDE, 0] for r in RRT.wp_nodes]
